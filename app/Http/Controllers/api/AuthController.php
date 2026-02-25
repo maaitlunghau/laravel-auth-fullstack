@@ -26,6 +26,7 @@ class AuthController extends Controller
             'role' => $data['role'],
             'status' => 'pending',
             'verification_token' => Str::random(64),
+            'verification_token_expires_at' => now()->addMinutes(15),
         ]);
 
         $user->notify(new VerifyEmailNotification($user->verification_token));
@@ -47,6 +48,13 @@ class AuthController extends Controller
             ], 400);
         }
 
+        // Kiểm tra token hết hạn
+        if ($user->verification_token_expires_at && $user->verification_token_expires_at->isPast()) {
+            return response()->json([
+                'message' => 'Token đã hết hạn. Vui lòng đăng ký lại.'
+            ], 400);
+        }
+
         if ($user->email_verified_at !== null) {
             return response()->json([
                 'message' => 'Email đã được xác thực trước đó'
@@ -56,6 +64,7 @@ class AuthController extends Controller
         $user->update([
             'email_verified_at' => now(),
             'verification_token' => null,
+            'verification_token_expires_at' => null,
             'status' => 'active'
         ]);
 

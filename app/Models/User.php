@@ -27,6 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'avatar',
         'google_id',
         'verification_token',
+        'verification_token_expires_at',
         'email_verified_at',
         'last_login_at',
     ];
@@ -51,6 +52,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'verification_token_expires_at' => 'datetime',
             'last_login_at' => 'datetime',
             'password' => 'hashed',
         ];
