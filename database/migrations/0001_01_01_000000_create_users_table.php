@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('verification_token')->nullable();
             $table->enum('role', ['admin', 'user'])->default('user');
-            $table->enum('status', ['active', 'pending', 'banned'])->default('active');
+            $table->enum('status', ['active', 'pending', 'banned'])->default('active')->nullable();
             $table->string('avatar')->nullable();
             $table->string('google_id')->nullable()->unique();
             $table->timestamp('last_login_at')->nullable();

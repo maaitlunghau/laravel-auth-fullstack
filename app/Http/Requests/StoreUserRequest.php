@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 
@@ -14,7 +16,8 @@ class StoreUserRequest extends FormRequest
     public function authorize(): bool
     {
         // chỗ này cần tìm hiểu thêm về cách Laravel hoạt 'Auth::check()'
-        return Auth::check() && Auth::user()->role === 'admin';
+        // return Auth::check() && Auth::user()->role === 'admin';
+        return true;
     }
 
     /**
@@ -36,7 +39,7 @@ class StoreUserRequest extends FormRequest
                     ->symbols()
             ],
             'role' => 'required|in:user,admin',
-            'status' => 'required|in:active,pending,banned',
+            'status' => 'nullable|in:active,pending,banned',
             'avatar' => 'nullable|url|max:255',
             'google_id' => 'nullable|string|max:255|unique:users,google_id',
         ];
@@ -56,5 +59,16 @@ class StoreUserRequest extends FormRequest
             'avatar.url' => 'Avatar phải là URL hợp lệ',
             'google_id.unique' => 'Google ID đã được sử dụng',
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(
+            response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422)
+        );
     }
 }
