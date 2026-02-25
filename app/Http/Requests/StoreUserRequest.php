@@ -15,9 +15,7 @@ class StoreUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // chỗ này cần tìm hiểu thêm về cách Laravel hoạt 'Auth::check()'
-        // return Auth::check() && Auth::user()->role === 'admin';
-        return true;
+        return Auth::check() && Auth::user()->role === 'admin';
     }
 
     /**

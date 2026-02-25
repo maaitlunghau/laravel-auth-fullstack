@@ -7,6 +7,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -24,6 +25,8 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $data = $request->validated();
+
+        // TODO: cần xử lí verification_token
         $user = User::create($data);
 
         return response(new UserResource($user), 201);
@@ -39,12 +42,49 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+
+        if ($currentUser->role === 'user') {
+            return response()->json([
+                'message' => 'Bạn không được phép thực hiện hành động này.'
+            ], 403);
+        }
+
+
+        if ($user->id === $currentUser->id) {
+            return response()->json([
+                'message' => 'Không thể xóa chính mình.'
+            ], 403);
+        }
+
+        if ($user->role === 'admin') {
+            return response()->json([
+                'message' => 'Không thể xóa tài khoản admin.'
+            ], 403);
+        }
+
         $user->delete();
         return response()->noContent();
     }
 
     public function ban(User $user)
     {
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+
+        if ($currentUser->role === 'user') {
+            return response()->json([
+                'message' => 'Bạn không được phép thực hiện hành động này.'
+            ], 403);
+        }
+
+        if ($user->id === $currentUser->id) {
+            return response()->json([
+                'message' => 'Không thể cấm chính mình.'
+            ], 403);
+        }
+
         if ($user->role === 'admin') {
             return response()->json([
                 'message' => 'Không thể cấm tài khoản admin.'
@@ -67,6 +107,15 @@ class UserController extends Controller
 
     public function unban(User $user)
     {
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+
+        if ($currentUser->role === 'user') {
+            return response()->json([
+                'message' => 'Bạn không được phép thực hiện hành động này.'
+            ], 403);
+        }
+
         if ($user->status !== 'banned') {
             return response()->json([
                 'message' => 'Người dùng này chưa bị cấm.'

@@ -15,9 +15,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // cần nghiên cứu về cách hoạt động của 'Auth::check()'
-        // return Auth::check() && Auth::user()->role === 'admin';
-        return true;
+        return Auth::check() && Auth::user()->role === 'admin';
     }
 
     /**
