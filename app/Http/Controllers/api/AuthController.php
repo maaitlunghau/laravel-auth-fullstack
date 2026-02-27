@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\VerifyEmailRequest;
+use App\Http\Requests\ForgotPasswordRequest;
+use App\Http\Requests\ResendVerifyEmailRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Notifications\VerifyEmailNotification;
-use App\Http\Requests\ResendVerifyEmailRequest;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -147,6 +152,67 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Đăng xuất thành công'
+        ]);
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        $email = $request->validated()['email'];
+        $user = User::where('email', $email)->first();
+
+        $token = Str::random(64);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $email],
+            [
+                'token' => Hash::make($token),
+                'created_at' => now()
+            ]
+        );
+
+        $user->notify(new ResetPasswordNotification($token));
+
+        return response()->json([
+            'message' => 'Email đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hòm thư.'
+        ]);
+    }
+
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        $data = $request->validated();
+
+        $resetRecord = DB::table('password_reset_tokens')
+            ->where('email', $data['email'])
+            ->first();
+        if (!$resetRecord) {
+            return response()->json([
+                'message' => 'Token không hợp lệ.'
+            ], 400);
+        }
+
+        if (!Hash::check($data['token'], $resetRecord->token)) {
+            return response()->json([
+                'message' => 'Token không hợp lệ.'
+            ], 400);
+        }
+
+        if (now()->diffInMinutes($resetRecord->created_at) > 60) {
+            return response()->json([
+                'message' => 'Token đã hết hạn.'
+            ], 400);
+        }
+
+        $user = User::where('email', $data['email'])->first();
+        $user->update([
+            'password' => $data['password']
+        ]);
+
+        DB::table('password_reset_tokens')
+            ->where('email', $data['email'])
+            ->delete();
+
+        return response()->json([
+            'message' => 'Đặt lại mật khẩu thành công.'
         ]);
     }
 }
