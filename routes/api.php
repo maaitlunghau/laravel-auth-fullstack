@@ -29,4 +29,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::get('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-verify-email', [AuthController::class, 'resendVerifyEmail'])
     ->middleware('throttle:3,1');
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])
+    ->middleware('throttle:3,1');
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/login', [AuthController::class, 'login']);
