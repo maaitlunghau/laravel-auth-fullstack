@@ -27,4 +27,6 @@ Route::middleware(['auth:sanctum', 'verified', 'not.banned'])->group(function ()
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::get('/verify-email', [AuthController::class, 'verifyEmail']);
+Route::post('/resend-verify-email', [AuthController::class, 'resendVerifyEmail'])
+    ->middleware('throttle:3,1');
 Route::post('/login', [AuthController::class, 'login']);
