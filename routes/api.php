@@ -5,14 +5,14 @@ use App\Http\Controllers\api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'not.banned'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::prefix('users')->group(function () {
+    Route::middleware('admin')->prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index']);
         Route::get('/{user}', [UserController::class, 'show']);
         Route::post('/', [UserController::class, 'store']);

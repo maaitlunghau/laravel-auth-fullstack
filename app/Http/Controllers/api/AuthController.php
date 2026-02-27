@@ -86,12 +86,12 @@ class AuthController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if (!$user->hasVerifiedEmail()) {
-            Auth::logout();
-            return response()->json([
-                'message' => 'Vui lòng xác thực email trước khi đăng nhập.'
-            ], 403);
-        }
+        // if (!$user->hasVerifiedEmail()) {
+        //     Auth::logout();
+        //     return response()->json([
+        //         'message' => 'Vui lòng xác thực email trước khi đăng nhập.'
+        //     ], 403);
+        // }
 
         if ($user->status === 'banned') {
             Auth::logout();
