@@ -45,13 +45,6 @@ class UserController extends Controller
         /** @var User $currentUser */
         $currentUser = Auth::user();
 
-        if ($currentUser->role === 'user') {
-            return response()->json([
-                'message' => 'Bạn không được phép thực hiện hành động này.'
-            ], 403);
-        }
-
-
         if ($user->id === $currentUser->id) {
             return response()->json([
                 'message' => 'Không thể xóa chính mình.'
@@ -72,12 +65,6 @@ class UserController extends Controller
     {
         /** @var User $currentUser */
         $currentUser = Auth::user();
-
-        if ($currentUser->role === 'user') {
-            return response()->json([
-                'message' => 'Bạn không được phép thực hiện hành động này.'
-            ], 403);
-        }
 
         if ($user->id === $currentUser->id) {
             return response()->json([
@@ -107,15 +94,6 @@ class UserController extends Controller
 
     public function unban(User $user)
     {
-        /** @var User $currentUser */
-        $currentUser = Auth::user();
-
-        if ($currentUser->role === 'user') {
-            return response()->json([
-                'message' => 'Bạn không được phép thực hiện hành động này.'
-            ], 403);
-        }
-
         if ($user->status !== 'banned') {
             return response()->json([
                 'message' => 'Người dùng này chưa bị cấm.'

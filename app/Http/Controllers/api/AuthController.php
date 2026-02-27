@@ -9,6 +9,7 @@ use App\Http\Requests\VerifyEmailRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Notifications\VerifyEmailNotification;
+use App\Http\Requests\ResendVerifyEmailRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -73,6 +74,29 @@ class AuthController extends Controller
         ]);
     }
 
+    public function resendVerifyEmail(ResendVerifyEmailRequest $request)
+    {
+        $email = $request->validated()['email'];
+        $user = User::where('email', $email)->first();
+
+        if ($user->email_verified_at !== null) {
+            return response()->json([
+                'message' => 'Email của bạn đã được xác thực rồi.'
+            ], 400);
+        }
+
+        $user->update([
+            'verification_token' => Str::random(64),
+            'verification_token_expires_at' => now()->addMinutes(15),
+        ]);
+
+        $user->notify(new VerifyEmailNotification($user->verification_token));
+
+        return response()->json([
+            'message' => 'Email xác thực đã được gửi lại. Vui lòng kiểm tra hòm thư.'
+        ]);
+    }
+
     public function login(LoginRequest $request)
     {
         $credential = $request->validated();
@@ -86,12 +110,12 @@ class AuthController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if (!$user->hasVerifiedEmail()) {
-            Auth::logout();
-            return response()->json([
-                'message' => 'Vui lòng xác thực email trước khi đăng nhập.'
-            ], 403);
-        }
+        // if (!$user->hasVerifiedEmail()) {
+        //     Auth::logout();
+        //     return response()->json([
+        //         'message' => 'Vui lòng xác thực email trước khi đăng nhập.'
+        //     ], 403);
+        // }
 
         if ($user->status === 'banned') {
             Auth::logout();

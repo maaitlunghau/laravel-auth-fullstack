@@ -6,13 +6,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+Route::middleware(['auth:sanctum', 'verified', 'not.banned'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
-    Route::post('/logout', [AuthController::class, 'logout']);
-
-    Route::prefix('users')->group(function () {
+    Route::middleware('admin')->prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index']);
         Route::get('/{user}', [UserController::class, 'show']);
         Route::post('/', [UserController::class, 'store']);
@@ -25,4 +27,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::get('/verify-email', [AuthController::class, 'verifyEmail']);
+Route::post('/resend-verify-email', [AuthController::class, 'resendVerifyEmail'])
+    ->middleware('throttle:3,1');
 Route::post('/login', [AuthController::class, 'login']);
